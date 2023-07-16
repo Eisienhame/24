@@ -1,0 +1,20 @@
+{% extends 'main/base.html'%}
+
+{% load mediapath %}
+
+{% block content %}
+    <div class="col-3"></div>
+    <div class="col-6">
+    <div class="uk-card">
+        <div class="uk-card-header"></div>
+        <div class="uk-card-body">
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="uk-button-primary">Войти</button>
+            </form>
+        </div>
+
+    </div>
+    </div>
+{% endblock %}
