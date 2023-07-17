@@ -1,37 +1,35 @@
 from django.shortcuts import render
-from django.views import generic
 from main.models import Lesson, Course
 from django.urls import reverse_lazy, reverse
-from rest_framework import viewsets
-from main.serializers import CourseSerializer
+from rest_framework import viewsets, generics
+from main.serializers import CourseSerializer, LessonSerializer
+from main.models import Course, Lesson
 
 
-class CourseViewSet(viewsets.ViewSet):
+class CourseViewSet(viewsets.ModelViewSet):
     serializer_class = CourseSerializer
     queryset = Course.objects.all()
 
 
-class LessonListView(generic.ListView):
-    model = Lesson
+class LessonListAPIView(generics.ListAPIView):
+    serializer_class = LessonSerializer
+    queryset = Lesson.objects.all()
 
 
-class LessonDetailView(generic.DetailView):
-    model = Lesson
+class LessonRetrieveAPIView(generics.RetrieveAPIView):
+    serializer_class = LessonSerializer
+    queryset = Lesson.objects.all()
 
 
-class LessonCreateView(generic.CreateView):
-    model = Lesson
-    success_url = reverse_lazy('main:lesson_list')
-    fields = ('name', 'description', 'preview', 'url')
+class LessonCreateAPIView(generics.CreateAPIView):
+    serializer_class = LessonSerializer
 
 
-class LessonDeleteView(generic.DeleteView):
-    model = Lesson
-    success_url = reverse_lazy('main:lesson_list')
+class LessonDestroyAPIView(generics.DestroyAPIView):
+    serializer_class = LessonSerializer
 
 
-class LessonUpdateView(generic.UpdateView):
-    model = Lesson
-    success_url = reverse_lazy('main:lesson_list')
-    fields = ('name', 'description', 'preview', 'url')
+class LessonUpdateAPIView(generics.UpdateAPIView):
+    serializer_class = LessonSerializer
+    queryset = Lesson.objects.all()
 
