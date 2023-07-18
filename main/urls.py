@@ -1,6 +1,6 @@
 from main.apps import MainConfig
 from django.urls import path
-from main.views import LessonCreateAPIView, LessonListAPIView, LessonRetrieveAPIView, LessonUpdateAPIView, LessonDestroyAPIView
+from main.views import LessonCreateAPIView, LessonListAPIView, LessonRetrieveAPIView, LessonUpdateAPIView, LessonDestroyAPIView, PaymentCreateAPIView, PaymentListAPIView
 from rest_framework.routers import DefaultRouter
 from main.views import CourseViewSet
 
@@ -20,7 +20,8 @@ urlpatterns = [
     path('lesson/delete/<int:pk>/', LessonDestroyAPIView.as_view(), name='lesson_delete'),
     path('lesson/<int:pk>/', LessonRetrieveAPIView.as_view(), name='lesson_detail'),
     path('lesson/update/<int:pk>/', LessonUpdateAPIView.as_view(), name='lesson_update'),
-
+    path('payment/create/', PaymentCreateAPIView.as_view(), name='payment_create'),
+    path('payment/', PaymentListAPIView.as_view(), name='payment_list'),
 
 ] + router.urls
 
