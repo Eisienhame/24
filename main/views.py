@@ -14,14 +14,14 @@ from users.models import UserGroups
 class CourseViewSet(viewsets.ModelViewSet):
     serializer_class = CourseSerializer
     queryset = Course.objects.all()
-    permission_classes = [IsAuthenticated | ModeratorsPermissions]
+    permission_classes = [IsAuthenticated | ModeratorsPermissions | UsersPermissions]
 
-    def get_queryset(self):
-        user = self.request.user
-        if user.is_staff or user.is_superuser or (user.role == UserGroups.MODERATORS):
-            return Lesson.objects.all()
-        else:
-            return Lesson.objects.filter(owner=user)
+    # def get_queryset(self):
+    #     user = self.request.user
+    #     if user.is_staff or user.is_superuser or (user.role == UserGroups.MODERATORS):
+    #         return Lesson.objects.all()
+    #     else:
+    #         return Lesson.objects.filter(owner=user)
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
