@@ -73,3 +73,44 @@ class CourseTestCase(APITestCase):
             response.status_code,
             status.HTTP_200_OK
         )
+
+
+class SubscriptionTest(APITestCase):
+    def setUp(self) -> None:
+        super().setUp()
+        self.course = Course.objects.create(
+            name='Test',
+            description='Test'
+        )
+        self.user = User.objects.create(
+            id='1',
+            email='test@yandex.ru',
+            is_superuser=True
+        )
+        self.user.set_password('12345678')
+        self.user.save()
+        response = self.client.post(
+            '/users/token/',
+            {
+                'email': 'test@yandex.ru',
+                'password': '12345678'
+            }
+        )
+
+        self.access_token = response.json().get('access')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
+
+    def test_create_subscription(self):
+        response = self.client.post(
+            '/subscription/create/',
+            {
+                "status": "True",
+                "user": "1",
+                "course": "1"
+            }
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED
+        )
