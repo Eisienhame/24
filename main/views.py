@@ -1,17 +1,19 @@
 from django.shortcuts import render
 from main.models import Lesson, Course, SubscriptionCourse
 from django.urls import reverse_lazy, reverse
-from rest_framework import viewsets, generics
+from rest_framework import viewsets, generics, status
 from main.serializers import CourseSerializer, LessonSerializer, PaymentSerializer, SubscriptionCourseSerializers
 from main.models import Course, Lesson, Payment
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 from main.permissions import ModeratorsPermissions, UsersPermissions
-from main.services import StripeApi
+from main.services import create_payment, checkout_session
 from users.models import UserGroups
 from main.paginators import LessonPaginator
 from rest_framework.response import Response
+from rest_framework.views import APIView
+import stripe
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -73,32 +75,25 @@ class PaymentCreateAPIView(generics.CreateAPIView):
     serializer_class = PaymentSerializer
     queryset = Payment.objects.all()
 
-    def perform_create(self, serializer):
-        user = self.request.user
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        session = checkout_session(
+            course=serializer.validated_data['payed_course'],
+            user=self.request.user
+        )
+        serializer.save()
+        create_payment(course=serializer.validated_data['payed_course'],
+                       user=self.request.user)
+        return Response(session['id'], status=status.HTTP_201_CREATED)
 
-        user_data = serializer.validated_data
 
-        intent = StripeApi()
-        stripe_data = intent.create_payment_intent(user_data=user_data, user=user)  # вызов метода по созданию платежа
-        serializer.save(user=user, status=stripe_data[1],
-                        stripe_id=stripe_data[0])  # сохранение в модели данных полученных от stripe
-
-
-class PaymentConfirm(generics.RetrieveAPIView):
-    queryset = Payment.objects.all()
-    serializer_class = PaymentSerializer
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-
-        intent = StripeApi()
-
-        instance.status = intent.confirm_intent(
-            instance.stripe_id)  # вызов метода по подтверждению платежа и обновление статуса платежа в бд
-        instance.save()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
-
+class GetPaymentView(APIView):
+    """Получение информации о платеже"""
+    def get(self, request, payment_id):
+        payment_intent = stripe.PaymentIntent.retrieve(payment_id)
+        return Response({
+            'status': payment_intent.status, })
 
 
 class PaymentListAPIView(generics.ListAPIView):

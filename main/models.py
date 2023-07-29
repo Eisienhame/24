@@ -10,6 +10,7 @@ class Course(models.Model):
     description = models.TextField(verbose_name='Описание')
     preview = models.ImageField(upload_to='main/', verbose_name='изображение', **NULLABLE)
     author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Создатель', **NULLABLE)
+    price = models.PositiveIntegerField(default=1000, verbose_name='стоимость курса')
 
     def __str__(self):
         return f'{self.name}'
