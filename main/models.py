@@ -43,13 +43,20 @@ class Payment(models.Model):
         ('Cash', 'Наличные')
     ]
 
+    CURRENCY = [
+        ('usd', 'USD'),
+        ('eur', 'EURO')
+    ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Пользователь')
     payment_date = models.DateField(auto_now_add=True, verbose_name='Дата оплаты')
     payed_course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name='Оплаченный курс', **NULLABLE)
     payed_lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, verbose_name='Оплаченный урок', **NULLABLE)
     sum_payed = models.IntegerField(verbose_name='Сумма оплаты')
     how_payed = models.CharField(choices=CHOICES_PAY, verbose_name='Способ оплаты')
-
+    currency = models.CharField(choices=CURRENCY, verbose_name='валюта', default='usd')
+    status = models.CharField(verbose_name='статус платежа', **NULLABLE)
+    stripe_id = models.CharField(verbose_name='id платежа в stripe', **NULLABLE)
 
     def __str__(self):
         return f'{self.user}'

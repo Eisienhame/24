@@ -8,8 +8,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 from main.permissions import ModeratorsPermissions, UsersPermissions
+from main.services import StripeApi
 from users.models import UserGroups
 from main.paginators import LessonPaginator
+from rest_framework.response import Response
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -69,6 +71,34 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
 
 class PaymentCreateAPIView(generics.CreateAPIView):
     serializer_class = PaymentSerializer
+    queryset = Payment.objects.all()
+
+    def perform_create(self, serializer):
+        user = self.request.user
+
+        user_data = serializer.validated_data
+
+        intent = StripeApi()
+        stripe_data = intent.create_payment_intent(user_data=user_data, user=user)  # вызов метода по созданию платежа
+        serializer.save(user=user, status=stripe_data[1],
+                        stripe_id=stripe_data[0])  # сохранение в модели данных полученных от stripe
+
+
+class PaymentConfirm(generics.RetrieveAPIView):
+    queryset = Payment.objects.all()
+    serializer_class = PaymentSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        intent = StripeApi()
+
+        instance.status = intent.confirm_intent(
+            instance.stripe_id)  # вызов метода по подтверждению платежа и обновление статуса платежа в бд
+        instance.save()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
 
 
 class PaymentListAPIView(generics.ListAPIView):
