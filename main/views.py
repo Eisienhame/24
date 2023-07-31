@@ -9,6 +9,7 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 from main.permissions import ModeratorsPermissions, UsersPermissions
 from main.services import create_payment, checkout_session
+from main.tasks import send_updated_email
 from users.models import UserGroups
 from main.paginators import LessonPaginator
 from rest_framework.response import Response
@@ -21,6 +22,11 @@ class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
     permission_classes = [IsAuthenticated | ModeratorsPermissions | UsersPermissions]
     pagination_class = LessonPaginator
+
+    def update(self, request, *args, **kwargs):
+        send_updated_email(kwargs['pk'])
+
+        return super().update(request, *args, **kwargs)
 
     # def get_queryset(self):
     #     user = self.request.user
