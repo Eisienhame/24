@@ -1,0 +1,13 @@
+[Unit]
+Description=test28 daemon  # Описание вашего сервиса
+After=network.target # Сервис, от которого будет зависеть запуск проекта
+
+[Service]
+User=root # Имя пользователя владельца проекта в Linux
+Group=www-data # Группа, к которой относится пользователь
+WorkingDirectory=/var/www/html/test28 # Путь к рабочей директории проекта
+ExecStart=/var/www/html/test28/venv/bin/gunicorn --access-logfile - --workers 3 --bind unix: /var/www/html/test28/test28.sock config wsgi
+# Команда для запуска проекта
+
+[Install]
+WantedBy=multi-user.target # Ожидание запуска системы в нормальном состоянии доступа для пользователей
